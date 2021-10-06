@@ -119,7 +119,7 @@ int32_t LLSEC_DIGEST_IMPL_init(int32_t algorithm_id) {
 			break;
 		}
 		default: {
-			printf("%s - algorithm_id is %ld\n", __func__, algorithm_id);
+			printf("%s - algorithm_id is %d\n", __func__, algorithm_id);
 			SNI_throwNativeException(0, NULL);
 			break;
 		}
@@ -149,7 +149,7 @@ void LLSEC_DIGEST_IMPL_close(int32_t algorithm_id, int32_t native_id) {
 			break;
 		}
 		default: {
-			printf("%s - algorithm_id is %ld\n", __func__, algorithm_id);
+			printf("%s - algorithm_id is %d\n", __func__, algorithm_id);
 			SNI_throwNativeException(0, NULL);
 			break;
 		}
@@ -177,7 +177,7 @@ void LLSEC_DIGEST_IMPL_update(int32_t algorithm_id, int32_t native_id, uint8_t* 
 			break;
 		}
 		default: {
-			printf("%s - algorithm_id is %ld\n", __func__, algorithm_id);
+			printf("%s - algorithm_id is %d\n", __func__, algorithm_id);
 			SNI_throwNativeException(0, NULL);
 			break;
 		}
@@ -205,7 +205,7 @@ void LLSEC_DIGEST_IMPL_digest(int32_t algorithm_id, int32_t native_id, uint8_t* 
 			break;
 		}
 		default: {
-			printf("%s - algorithm_id is %ld\n", __func__, algorithm_id);
+			printf("%s - algorithm_id is %d\n", __func__, algorithm_id);
 			SNI_throwNativeException(0, NULL);
 			break;
 		}

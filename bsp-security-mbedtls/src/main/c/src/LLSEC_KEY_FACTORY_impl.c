@@ -14,6 +14,9 @@
  * @date @CCO_DATE@
  */
 
+#include <LLSEC_KEY_FACTORY_impl.h>
+#include <LLSEC_ERRORS.h>
+
 int32_t LLSEC_KEY_FACTORY_IMPL_get_algorithm_description(uint8_t* algorithm_name) {
 	// TODO not implemented yet
 	SNI_throwNativeException(J_UNKNOWN_ERROR, "Native not implemented yet");

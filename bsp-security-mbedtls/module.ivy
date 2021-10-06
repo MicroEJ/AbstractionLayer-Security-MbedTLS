@@ -5,10 +5,11 @@
 	This library is provided in source code for use, modification and test, subject to license terms.
 	Any modification of the source code will break MicroEJ Corp. warranties on the whole library.
 -->
-<ivy-module version="2.0" xmlns:ea="http://www.easyant.org"> 
-    <info organisation="com.microej.clibrary.llimpl" module="security-mbedtls" status="integration" revision="0.1.0">
+<ivy-module version="2.0" xmlns:ea="http://www.easyant.org" xmlns:m="http://ant.apache.org/ivy/maven" xmlns:ej="https://developer.microej.com" ej:version="2.0.0">
+    <info organisation="com.microej.clibrary.llimpl" module="security-mbedtls" status="integration" revision="0.2.0">
         <ea:build organisation="com.is2t.easyant.buildtypes" module="build-microej-ccomponent" revision="1.+">
         	<ea:property name="ccomponent.category" value="security"/>
+        	<ea:property name="skip.test" value="true"/>
         </ea:build>
         <ea:plugin org="com.is2t.easyant.plugins" module="clean-artifacts" revision="+" />
     </info>
