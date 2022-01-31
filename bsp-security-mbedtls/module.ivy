@@ -1,12 +1,12 @@
 <!--
 	IVY
-	
-	Copyright 2021 MicroEJ Corp. All rights reserved.
+
+	Copyright 2021-2022 MicroEJ Corp. All rights reserved.
 	This library is provided in source code for use, modification and test, subject to license terms.
 	Any modification of the source code will break MicroEJ Corp. warranties on the whole library.
 -->
 <ivy-module version="2.0" xmlns:ea="http://www.easyant.org" xmlns:m="http://ant.apache.org/ivy/maven" xmlns:ej="https://developer.microej.com" ej:version="2.0.0">
-    <info organisation="com.microej.clibrary.llimpl" module="security-mbedtls" status="integration" revision="0.2.0">
+    <info organisation="com.microej.clibrary.llimpl" module="security-mbedtls" status="integration" revision="0.9.0">
         <ea:build organisation="com.is2t.easyant.buildtypes" module="build-microej-ccomponent" revision="1.+">
         	<ea:property name="ccomponent.category" value="security"/>
         	<ea:property name="skip.test" value="true"/>
@@ -20,11 +20,11 @@
         <conf name="source" visibility="public" description="Source code"/>
         <conf name="test" visibility="private" description="this scope indicates that the dependency is not required for normal use of the application, and is only available for the test compilation and execution phases."/>
     </configurations>
-    
+
     <publications>
     	<!-- keep this empty if no specific artifact to publish -->
     </publications>
-    
+
     <dependencies>
         <!-- your project dependencies goes here -->
     </dependencies>
