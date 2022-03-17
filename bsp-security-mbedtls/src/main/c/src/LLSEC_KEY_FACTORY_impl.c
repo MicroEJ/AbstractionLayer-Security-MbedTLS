@@ -2,8 +2,14 @@
  * C
  *
  * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
- * This library is provided in source code for use, modification and test, subject to license terms.
- * Any modification of the source code will break MicroEJ Corp. warranties on the whole library.
+ * Use of this source code is governed by a BSD-style license that can be found with this software.
+ */
+
+/**
+ * @file
+ * @brief MicroEJ Security low level API implementation for MbedTLS Library.
+ * @author MicroEJ Developer Team
+ * @version 0.10.0
  */
 
 #include <LLSEC_ERRORS.h>
@@ -15,13 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "mbedtls/platform.h"
-
-/**
- * @file
- * @brief MicroEJ Security low level API implementation for MbedTLS Library.
- * @author MicroEJ Developer Team
- * @version 1.0.0
- */
 
 #define LLSEC_KEY_FACTORY_SUCCESS 0
 #define LLSEC_KEY_FACTORY_ERROR   1

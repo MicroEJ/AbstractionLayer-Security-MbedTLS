@@ -19,9 +19,9 @@ Here is a non exhaustive list of tested environments:
 - Hardware
     - Espressif ESP-WROVER-KIT V4.1
 - Compilers / Integrated Development Environments:
-    - Espressif IoT Development Framework (``esp-idf``) v3.3.4 (using GNU GCC toolchain)
+    - Espressif IoT Development Framework (``esp-idf``) v3.3.4 and v4.3.2 (using GNU GCC toolchain)
 - MbedTLS versions:
-    - MbedTLS v2.16.5
+    - MbedTLS v2.16.5 and v2.16.11
 
 # MISRA Compliance
 
@@ -44,5 +44,4 @@ None.
 	
 ---
 _Copyright 2021-2022 MicroEJ Corp. All rights reserved._
-_This library is provided in source code for use, modification and test, subject to license terms._
-_Any modification of the source code will break MicroEJ Corp. warranties on the whole library._
+_Use of this source code is governed by a BSD-style license that can be found with this software._
