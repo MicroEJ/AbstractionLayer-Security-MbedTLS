@@ -25,8 +25,24 @@ Here is a non exhaustive list of tested environments:
 
 # MISRA Compliance
 
-MISRA compliance is still a work in progress.
-This implementation will be made fully compliant for 1.0.0 release.
+This Abstraction Layer implementation is MISRA-compliant (MISRA C:2012) with some noted exception. 
+It has been verified with Cppcheck v2.8.0. Here is the list of deviations from MISRA standard:
+
+| Deviation  | Category | Justification                                                      |
+|:----------:|:--------:|:------------------------------------------------------------------ |
+|  Rule 8.4  | Required | The Cppcheck analysis is made only on this LL code                 |
+|  Rule 8.7  | Advisory | The Cppcheck analysis is made only on this LL code                 |
+|  Rule 8.9  | Advisory | Global variable or for code readability                            |
+| Rule 10.8  | Required | Boundries of the value is controlled                               |
+| Rule 11.1  | Required | Abstract data type for SNI usage                                   |
+| Rule 11.3  | Required | Cast for matching MbedTLS function signature                       |
+| Rule 11.4  | Advisory | Abstract data type for SNI usage                                   |
+| Rule 11.5  | Advisory | Abstract data type for SNI usage                                   |
+| Rule 11.6  | Required | Abstract data type for SNI usage                                   |
+| Rule 11.8  | Required | Cast to match used generic library function ```mbedtls_free```     |
+| Rule 17.8  | Advisory | Used as an output parameter                                        |
+| Rule 21.6  | Required | Used for debug purpose only                                        |
+| Rule 21.10 | Required | Type defined in library used in MbedTLS                            |
 
 # Dependencies
 

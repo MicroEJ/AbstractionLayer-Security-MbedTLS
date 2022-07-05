@@ -9,11 +9,11 @@
  * @file
  * @brief Security natives mbedtls structs.
  * @author MicroEJ Developer Team
- * @version 0.10.0
+ * @version 1.0.0
  */
 
-#ifndef __LLSEC_MBEDTLS___
-#define __LLSEC_MBEDTLS__
+#ifndef LLSEC_MBEDTLS
+#define LLSEC_MBEDTLS
 
 #include "mbedtls/pk.h"
 
@@ -35,4 +35,4 @@ typedef struct {
 
 extern char *llsec_gen_random_str_internal(int length);
 
-#endif /* __LLSEC_MBEDTLS__ */
+#endif /* LLSEC_MBEDTLS */
