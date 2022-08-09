@@ -48,6 +48,7 @@ It has been verified with Cppcheck v2.8.0. Here is the list of deviations from M
 
 - MicroEJ Architecture `7.x` or higher.
 - MbedTLS `v2.16.5` or higher.
+- Fondation library Security `v1.3.1`
 
 # Source
 

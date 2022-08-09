@@ -9,7 +9,7 @@
  * @file
  * @brief Security natives configuration.
  * @author MicroEJ Developer Team
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 #include "microej_allocator.h"
