@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.0.1
+ * @version 1.1.0
  */
 
 #include <LLSEC_X509_CERT_impl.h>

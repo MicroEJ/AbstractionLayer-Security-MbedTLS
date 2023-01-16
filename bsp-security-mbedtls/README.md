@@ -20,8 +20,9 @@ Here is a non exhaustive list of tested environments:
     - Espressif ESP-WROVER-KIT V4.1
 - Compilers / Integrated Development Environments:
     - Espressif IoT Development Framework (``esp-idf``) v3.3.4 and v4.3.2 (using GNU GCC toolchain)
+    - IAR Embedded Workbench 9.30.1
 - MbedTLS versions:
-    - MbedTLS v2.16.5 and v2.16.11
+    - MbedTLS v2.16.5, v2.16.11 and v2.28.0
 
 # MISRA Compliance
 
@@ -48,7 +49,7 @@ It has been verified with Cppcheck v2.8.0. Here is the list of deviations from M
 
 - MicroEJ Architecture `7.x` or higher.
 - MbedTLS `v2.16.5` or higher.
-- Fondation library Security `v1.3.1`
+- Foundation library Security `v1.3.1`
 
 # Source
 
@@ -60,5 +61,5 @@ None.
 
 	
 ---
-_Copyright 2021-2022 MicroEJ Corp. All rights reserved._
+_Copyright 2021-2023 MicroEJ Corp. All rights reserved._
 _Use of this source code is governed by a BSD-style license that can be found with this software._

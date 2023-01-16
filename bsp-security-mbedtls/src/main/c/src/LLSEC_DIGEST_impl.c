@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.0.1
+ * @version 1.1.0
  */
 
 #include <LLSEC_DIGEST_impl.h>
@@ -25,6 +25,8 @@
 #define LLSEC_DIGEST_SUCCESS 0
 #define LLSEC_DIGEST_ERROR   -1
 
+#define MD5_DIGEST_LENGTH    16
+#define SHA1_DIGEST_LENGTH   20
 #define SHA256_DIGEST_LENGTH 32
 #define SHA512_DIGEST_LENGTH 64
 
@@ -57,12 +59,34 @@ typedef struct {
 
 static int mbedtls_digest_update(void* native_id, uint8_t* buffer, int32_t buffer_length);
 static int mbedtls_digest_digest(void* native_id, uint8_t* out, int32_t* out_length);
+static int LLSEC_DIGEST_MD5_init(void** native_id);
+static int LLSEC_DIGEST_SHA1_init(void** native_id);
 static int LLSEC_DIGEST_SHA256_init(void** native_id);
 static int LLSEC_DIGEST_SHA512_init(void** native_id);
 static void mbedtls_digest_close(void* native_id);
 
 // cppcheck-suppress misra-c2012-8.9 // Define here for code readability even if it called once in this file.
-static LLSEC_DIGEST_algorithm available_digest_algorithms[2] = {
+static LLSEC_DIGEST_algorithm available_digest_algorithms[4] = {
+    {
+        .name   = "MD5",
+        .init   = LLSEC_DIGEST_MD5_init,
+        .update = mbedtls_digest_update,
+        .digest = mbedtls_digest_digest,
+        .close  = mbedtls_digest_close,
+        {
+            .digest_length = MD5_DIGEST_LENGTH
+        }
+    },
+    {
+        .name   = "SHA-1",
+        .init   = LLSEC_DIGEST_SHA1_init,
+        .update = mbedtls_digest_update,
+        .digest = mbedtls_digest_digest,
+        .close  = mbedtls_digest_close,
+        {
+            .digest_length = SHA1_DIGEST_LENGTH
+        }
+    },
     {
         .name   = "SHA-256",
         .init   = LLSEC_DIGEST_SHA256_init,
@@ -119,6 +143,72 @@ static void mbedtls_digest_close(void* native_id)
 
     /* Memory deallocation */
     mbedtls_md_free(md_ctx);
+}
+
+/*
+ * Specific md5 function
+ */
+static int LLSEC_DIGEST_MD5_init(void** native_id)
+{
+    int return_code = LLSEC_DIGEST_SUCCESS;
+    LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
+
+    mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
+    if (md_ctx == NULL) {
+        return_code = LLSEC_DIGEST_ERROR;
+    }
+
+    if (return_code == LLSEC_DIGEST_SUCCESS){
+        mbedtls_md_init(md_ctx);
+
+        return_code = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_MD5), 0);
+        if (return_code != LLSEC_DIGEST_SUCCESS) {
+            mbedtls_md_free(md_ctx);
+        }
+    }
+
+    if (return_code == LLSEC_DIGEST_SUCCESS){
+        return_code = mbedtls_md_starts(md_ctx);
+        if (return_code != LLSEC_DIGEST_SUCCESS) {
+            mbedtls_md_free(md_ctx);
+        } else {
+            *native_id = md_ctx;
+        }
+    }
+    return return_code;
+}
+
+/*
+ * Specific sha-1 function
+ */
+static int LLSEC_DIGEST_SHA1_init(void** native_id)
+{
+    int return_code = LLSEC_DIGEST_SUCCESS;
+    LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
+
+    mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
+    if (md_ctx == NULL) {
+        return_code = LLSEC_DIGEST_ERROR;
+    }
+
+    if (return_code == LLSEC_DIGEST_SUCCESS){
+        mbedtls_md_init(md_ctx);
+
+        return_code = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 0);
+        if (return_code != LLSEC_DIGEST_SUCCESS) {
+            mbedtls_md_free(md_ctx);
+        }
+    }
+
+    if (return_code == LLSEC_DIGEST_SUCCESS){
+        return_code = mbedtls_md_starts(md_ctx);
+        if (return_code != LLSEC_DIGEST_SUCCESS) {
+            mbedtls_md_free(md_ctx);
+        } else {
+            *native_id = md_ctx;
+        }
+    }
+    return return_code;
 }
 
 /*

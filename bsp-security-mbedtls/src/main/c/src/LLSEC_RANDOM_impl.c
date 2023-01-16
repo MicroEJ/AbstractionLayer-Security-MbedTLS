@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.0.1
+ * @version 1.1.0
  */
 
 #include <LLSEC_ERRORS.h>
@@ -160,6 +160,18 @@ void LLSEC_RANDOM_IMPL_set_seed(int32_t native_id, uint8_t* seed, int32_t size)
     LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
     LLSEC_RANDOM_DEBUG_TRACE("LLSEC_RANDOM_IMPL_set_seed, Seeding the random number generator\n");
     int32_t ret;
+
+    /*
+     * Since ctr_drbg is not freed (to support multi-instance), setting a new seed from application point of view can be done after mbedtls_ctr_drbg_random calls,
+     * which will increase the reseed counter with every call, making the entropy nonce length higher than the maximum seed length (MBEDTLS_CTR_DRBG_MAX_SEED_INPUT),
+     * thus faling to proper set a new seed.
+     * So, need to reseed first to obtain appropriate entropy nonce length.
+     */
+    ret = mbedtls_ctr_drbg_reseed(&ctr_drbg, NULL, 0);
+    if (ret != 0) {
+        SNI_throwNativeException(ret, "mbedtls_ctr_drbg_reseed failed");
+    }
+
     ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
                                      (const unsigned char*)seed, size);
     if (ret != 0) {
