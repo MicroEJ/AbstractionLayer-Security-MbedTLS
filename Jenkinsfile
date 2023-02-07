@@ -1,10 +1,9 @@
 /**
- * Copyright 2021-2022 MicroEJ Corp. All rights reserved.
- * This library is provided in source code for use, modification and test, subject to license terms.
- * Any modification of the source code will break MicroEJ Corp. warranties on the whole library.
+ * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 buildWithAnt{
-	MODULE_DIR = 'bsp-security-mbedtls'				// The name of the project into which your MODULE_FILENAME is. Default value is : "" . So leave blank if your MODULE_FILENAME is in the root of your gitlab project.
+	MODULE_DIR = ''				// The name of the project into which your MODULE_FILENAME is. Default value is : "" . So leave blank if your MODULE_FILENAME is in the root of your gitlab project.
 	//MODULE_FILENAME= ''			// The module filename. Default value is : module.ivy. Set it if yours is different.
 	LABEL = 'gcc && lcov && cppcheck'					// The label where build must be run. Default value is : generic. Set it if yours is different.
 

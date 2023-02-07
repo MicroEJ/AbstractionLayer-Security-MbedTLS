@@ -1,1 +1,3 @@
-bsp-security-mbedtls/target~/
+/Debug/
+/target~/
+/.settings/*
