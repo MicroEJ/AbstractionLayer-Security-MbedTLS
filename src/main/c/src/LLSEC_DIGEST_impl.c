@@ -136,7 +136,6 @@ static void mbedtls_digest_close(void* native_id) {
  */
 static int LLSEC_DIGEST_MD5_init(void** native_id) {
     int return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
 
     mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
@@ -146,14 +145,14 @@ static int LLSEC_DIGEST_MD5_init(void** native_id) {
 
     if (LLSEC_SUCCESS == return_code) {
         mbedtls_md_init(md_ctx);
-        mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_MD5), 0);
+        int mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_MD5), 0);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
 
     if (LLSEC_SUCCESS == return_code) {
-        mbedtls_rc = mbedtls_md_starts(md_ctx);
+        int mbedtls_rc = mbedtls_md_starts(md_ctx);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
@@ -173,7 +172,6 @@ static int LLSEC_DIGEST_MD5_init(void** native_id) {
  */
 static int LLSEC_DIGEST_SHA1_init(void** native_id) {
     int return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
 
     mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
@@ -183,14 +181,14 @@ static int LLSEC_DIGEST_SHA1_init(void** native_id) {
 
     if (LLSEC_SUCCESS == return_code){
         mbedtls_md_init(md_ctx);
-        mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 0);
+        int mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA1), 0);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
 
     if (LLSEC_SUCCESS == return_code){
-        mbedtls_rc = mbedtls_md_starts(md_ctx);
+        int mbedtls_rc = mbedtls_md_starts(md_ctx);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
@@ -210,7 +208,6 @@ static int LLSEC_DIGEST_SHA1_init(void** native_id) {
  */
 static int LLSEC_DIGEST_SHA256_init(void** native_id) {
     int return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
 
     mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
@@ -220,14 +217,14 @@ static int LLSEC_DIGEST_SHA256_init(void** native_id) {
 
     if (LLSEC_SUCCESS == return_code){
         mbedtls_md_init(md_ctx);
-        mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
+        int mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
 
     if (LLSEC_SUCCESS == return_code){
-        mbedtls_rc = mbedtls_md_starts(md_ctx);
+        int mbedtls_rc = mbedtls_md_starts(md_ctx);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
@@ -247,7 +244,6 @@ static int LLSEC_DIGEST_SHA256_init(void** native_id) {
  */
 static int LLSEC_DIGEST_SHA512_init(void** native_id) {
     int return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     LLSEC_DIGEST_DEBUG_TRACE("%s \n", __func__);
 
     mbedtls_md_context_t* md_ctx = mbedtls_calloc(1, sizeof(mbedtls_md_context_t));
@@ -257,14 +253,14 @@ static int LLSEC_DIGEST_SHA512_init(void** native_id) {
 
     if (LLSEC_SUCCESS == return_code){
         mbedtls_md_init(md_ctx);
-        mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA512), 0);
+        int mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA512), 0);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
 
     if (LLSEC_SUCCESS == return_code){
-        mbedtls_rc = mbedtls_md_starts(md_ctx);
+        int mbedtls_rc = mbedtls_md_starts(md_ctx);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }

@@ -21,6 +21,7 @@
 #include <sni.h>
 #include <string.h>
 
+#include "mbedtls/version.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/dhm.h"
@@ -73,14 +74,28 @@ static int32_t LLSEC_KEY_PAIR_GENERATOR_RSA_mbedtls_generateKeyPair(int32_t rsa_
     mbedtls_ctr_drbg_init(&ctr_drbg); //Initial random structure
 
     /* init rsa structure: padding OAEP + SHA256 */
+#if (MBEDTLS_VERSION_MAJOR == 2)
     mbedtls_rsa_init(ctx, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
-
-    /* update seed according personal string */
-    mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t*)pers, strlen(pers));
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+    mbedtls_rsa_init(ctx);
+    mbedtls_rc = mbedtls_rsa_set_padding(ctx, MBEDTLS_RSA_PKCS_V21, MBEDTLS_MD_SHA256);
     if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-        LLSEC_KEY_PAIR_GENERATOR_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed (rc = %d)\n", __func__, mbedtls_rc);
+        LLSEC_KEY_PAIR_GENERATOR_DEBUG_TRACE("%s mbedtls_rsa_set_padding (rc = %d)\n", __func__, mbedtls_rc);
         mbedtls_rsa_free(ctx);
         return_code = LLSEC_ERROR;
+    }
+#else
+    #error "Unsupported mbedTLS major version"
+#endif
+
+    if (LLSEC_SUCCESS == return_code) {
+        /* update seed according personal string */
+        mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t*)pers, strlen(pers));
+        if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+            LLSEC_KEY_PAIR_GENERATOR_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed (rc = %d)\n", __func__, mbedtls_rc);
+            mbedtls_rsa_free(ctx);
+            return_code = LLSEC_ERROR;
+        }
     }
 
     if (LLSEC_SUCCESS == return_code) {

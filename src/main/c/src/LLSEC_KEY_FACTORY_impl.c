@@ -23,6 +23,9 @@
 #include <string.h>
 #include "mbedtls/platform.h"
 #include "mbedtls/pk.h"
+#include "mbedtls/version.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
 
 // cppcheck-suppress misra-c2012-8.9 // Define here for code readability even if it called once in this file.
 static const char* pkcs8_format = "PKCS#8";
@@ -69,6 +72,7 @@ static LLSEC_KEY_FACTORY_algorithm available_key_algorithms[2] = {
 
 static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key* priv_key, uint8_t* encoded_key, int32_t encoded_key_length) {
     LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (key = %p) \n", __func__, priv_key);
+    LLSEC_KEY_FACTORY_DEBUG_TRACE("encLen %d, strlen: %zu, enc:%s  \n", (int)encoded_key_length, strlen((char*)encoded_key), encoded_key);
 
     int return_code = LLSEC_SUCCESS;
     int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
@@ -77,10 +81,38 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
-    mbedtls_rc = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0);
+
+#if (MBEDTLS_VERSION_MAJOR == 3)
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char* pers = llsec_gen_random_str_internal(8);
+
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+
+    mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char*)pers, strlen(pers));
     if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-        LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls private key parsing failed (rc = %d)", mbedtls_rc);
+        mbedtls_ctr_drbg_free(&ctr_drbg);
+        mbedtls_entropy_free(&entropy);
+        // cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
+        mbedtls_free((void*)pers);
+        (void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
         return_code = LLSEC_ERROR;
+    }
+#endif
+
+    if(LLSEC_SUCCESS == return_code) {
+#if (MBEDTLS_VERSION_MAJOR == 2)
+        mbedtls_rc = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+        mbedtls_rc = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0, mbedtls_ctr_drbg_random, &ctr_drbg);
+#else
+        #error "Unsupported mbedTLS major version"
+#endif
+        if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+            LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls_pk_parse_key failed (rc = %d)", mbedtls_rc);
+            return_code = LLSEC_ERROR;
+        }
     }
 
     if(LLSEC_SUCCESS == return_code) {
@@ -103,6 +135,13 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
         }
     }
 
+#if (MBEDTLS_VERSION_MAJOR == 3)
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+    // cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
+    mbedtls_free((void*)pers);
+#endif
+
     LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);
     return return_code;
 }
@@ -119,7 +158,7 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_public_key_data(LLSEC_pub_key* 
     mbedtls_pk_init(&pk);
     mbedtls_rc = mbedtls_pk_parse_public_key(&pk, encoded_key, encoded_key_length);
     if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-        LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls public key parsing failed (rc = %d)", mbedtls_rc);
+        LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls_pk_parse_public_key failed (rc = %d)", mbedtls_rc);
         return_code = LLSEC_ERROR;
     }
 
@@ -149,7 +188,7 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_public_key_data(LLSEC_pub_key* 
 
 static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key* priv_key, uint8_t* encoded_key, int32_t encoded_key_length) {
     LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (key = %p) \n", __func__, priv_key);
-    LLSEC_KEY_FACTORY_DEBUG_TRACE("encLen %d, strlen: %zu, enc:%s  \n", encoded_key_length, strlen((char*)encoded_key), encoded_key);
+    LLSEC_KEY_FACTORY_DEBUG_TRACE("encLen %d, strlen: %zu, enc:%s  \n", (int)encoded_key_length, strlen((char*)encoded_key), encoded_key);
 
     int return_code = LLSEC_SUCCESS;
     int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
@@ -158,16 +197,44 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key*
 
     mbedtls_pk_context pk;
     mbedtls_pk_init(&pk);
-    mbedtls_rc  = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0);
-    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-        LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls_pk_parse_key failed (rc = %d)\n", return_code);
+
+#if (MBEDTLS_VERSION_MAJOR == 3)
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char* pers = llsec_gen_random_str_internal(8);
+
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+
+    mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char*)pers, strlen(pers));
+    if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+        mbedtls_ctr_drbg_free(&ctr_drbg);
+        mbedtls_entropy_free(&entropy);
+        // cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
+        mbedtls_free((void*)pers);
+        (void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
         return_code = LLSEC_ERROR;
+    }
+#endif
+
+    if(LLSEC_SUCCESS == return_code) {
+#if (MBEDTLS_VERSION_MAJOR == 2)
+        mbedtls_rc = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+        mbedtls_rc = mbedtls_pk_parse_key(&pk, encoded_key, encoded_key_length, NULL, 0, mbedtls_ctr_drbg_random, &ctr_drbg);
+#else
+        #error "Unsupported mbedTLS major version"
+#endif
+        if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+            LLSEC_KEY_FACTORY_DEBUG_TRACE("mbedtls_pk_parse_key failed (rc = %d)\n", mbedtls_rc);
+            return_code = LLSEC_ERROR;
+        }
     }
 
     if(LLSEC_SUCCESS == return_code) {
         priv_key->key = (char*)mbedtls_pk_ec(pk);
         if (NULL == priv_key->key) {
-            (void)SNI_throwNativeException(LLSEC_ERROR, "EC private key extraction failed");
+            (void)SNI_throwNativeException(LLSEC_ERROR, "EC context extraction failed");
             return_code = LLSEC_ERROR;
         }
     }
@@ -183,6 +250,13 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key*
             return_code = (int32_t)native_id;
         }
     }
+
+#if (MBEDTLS_VERSION_MAJOR == 3)
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+    // cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
+    mbedtls_free((void*)pers);
+#endif
 
     LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);
     return return_code;
@@ -207,7 +281,7 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_public_key_data(LLSEC_pub_key* p
     if(LLSEC_SUCCESS == return_code) {
         pub_key->key = (char*)mbedtls_pk_ec(pk);
         if (NULL == pub_key->key) {
-            (void)SNI_throwNativeException(LLSEC_ERROR, "EC context extraction failed");
+            (void)SNI_throwNativeException(LLSEC_ERROR, "EC public key extraction failed");
             return_code = LLSEC_ERROR;
         }
     }
@@ -320,7 +394,7 @@ int32_t LLSEC_KEY_FACTORY_IMPL_get_public_key_data(int32_t algorithm_id, uint8_t
         }
     }
 
-    LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);
+    LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, (int)return_code);
     return return_code;
 }
 
@@ -362,7 +436,7 @@ int32_t LLSEC_KEY_FACTORY_IMPL_get_private_key_data(int32_t algorithm_id, uint8_
         }
     }
 
-    LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);
+    LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, (int)return_code);
     return return_code;
 }
 

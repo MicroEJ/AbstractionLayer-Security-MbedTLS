@@ -2,15 +2,8 @@
  * C
  *
  * Copyright 2023 MicroEJ Corp. All rights reserved.
- * This library is provided in source code for use, modification and test, subject to license terms.
- * Any modification of the source code will break MicroEJ Corp. warranties on the whole library.
+ * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
-
-#include <LLSEC_SECRET_KEY_FACTORY_impl.h>
-#include <LLSEC_configuration.h>
-#include <LLSEC_mbedtls.h>
-#include <string.h>
-#include <mbedtls/pkcs5.h>
 
 /**
  * @file
@@ -19,6 +12,13 @@
  * @version @CCO_VERSION@
  * @date @CCO_DATE@
  */
+
+#include <LLSEC_SECRET_KEY_FACTORY_impl.h>
+#include <LLSEC_configuration.h>
+#include <LLSEC_mbedtls.h>
+#include <string.h>
+#include "mbedtls/platform.h"
+#include "mbedtls/pkcs5.h"
 
 typedef int32_t (*LLSEC_SECRET_KEY_FACTORY_get_key_data)(LLSEC_secret_key* secret_key, mbedtls_md_type_t md_type, uint8_t* password, int32_t password_length, uint8_t* salt, int32_t salt_length, int32_t iterations, int32_t key_length);
 typedef void    (*LLSEC_SECRET_KEY_FACTORY_key_close)(void* native_id);
@@ -82,7 +82,6 @@ int32_t LLSEC_SECRET_KEY_FACTORY_PBKDF2_mbedtls_get_key_data(LLSEC_secret_key* s
     LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s \n", __func__);
 
     int32_t return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     mbedtls_md_context_t md_ctx;
     const mbedtls_md_info_t *md_info = NULL;
 
@@ -105,7 +104,7 @@ int32_t LLSEC_SECRET_KEY_FACTORY_PBKDF2_mbedtls_get_key_data(LLSEC_secret_key* s
 
     /* Setup HMAC context */
     if (LLSEC_SUCCESS == return_code) {
-        mbedtls_rc = mbedtls_md_setup(&md_ctx, md_info, 1);
+        int mbedtls_rc = mbedtls_md_setup(&md_ctx, md_info, 1);
         if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s mbedtls_md_setup() failed (rc = %d)\n", __func__, mbedtls_rc);
             (void)SNI_throwNativeException(LLSEC_ERROR, "mbedtls_md_setup() failed");
@@ -116,14 +115,14 @@ int32_t LLSEC_SECRET_KEY_FACTORY_PBKDF2_mbedtls_get_key_data(LLSEC_secret_key* s
     /* PKCS#5 PBKDF2 using HMAC */
     if (LLSEC_SUCCESS == return_code) {
         secret_key->key_length = key_length;
-        mbedtls_rc = mbedtls_pkcs5_pbkdf2_hmac((mbedtls_md_context_t *)&md_ctx,
-                                               (const unsigned char *)password,
-                                               (size_t)password_length,
-                                               (const unsigned char *)salt,
-                                               (size_t)salt_length,
-                                               (unsigned int)iterations,
-                                               (uint32_t)secret_key->key_length,
-                                               (unsigned char *)secret_key->key);
+        int mbedtls_rc = mbedtls_pkcs5_pbkdf2_hmac((mbedtls_md_context_t *)&md_ctx,
+                                                   (const unsigned char *)password,
+                                                   (size_t)password_length,
+                                                   (const unsigned char *)salt,
+                                                   (size_t)salt_length,
+                                                   (unsigned int)iterations,
+                                                   (uint32_t)secret_key->key_length,
+                                                   (unsigned char *)secret_key->key);
         if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s mbedtls_pkcs5_pbkdf2_hmac() failed (rc = %d)\n", __func__, mbedtls_rc);
             (void)SNI_throwNativeException(mbedtls_rc, "mbedtls_pkcs5_pbkdf2_hmac() failed");
@@ -145,7 +144,7 @@ int32_t LLSEC_SECRET_KEY_FACTORY_PBKDF2_mbedtls_get_key_data(LLSEC_secret_key* s
     /* Return key struct addr (native_id) */
     if (LLSEC_SUCCESS == return_code) {
         return_code = (int32_t)secret_key;
-        LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s mbedtls_pkcs5_pbkdf2_hmac() success. (native_id = %d)\n", __func__, return_code);
+        LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s mbedtls_pkcs5_pbkdf2_hmac() success. (native_id = %d)\n", __func__, (int)return_code);
     } else {
         LLSEC_SECRET_KEY_FACTORY_mbedtls_free_secret_key(secret_key);
     }
@@ -191,7 +190,7 @@ int32_t LLSEC_SECRET_KEY_FACTORY_IMPL_get_algorithm(uint8_t* algorithm_name) {
     if (0 <= nb_algorithms) {
         return_code = (int32_t)algorithm;
     }
-    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s Return handler = %d\n", __func__, return_code);
+    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s Return handler = %d\n", __func__, (int)return_code);
 
     return return_code;
 }
@@ -212,7 +211,7 @@ int32_t LLSEC_SECRET_KEY_FACTORY_IMPL_get_algorithm(uint8_t* algorithm_name) {
  * @throws NativeException on error
  */
 int32_t LLSEC_SECRET_KEY_FACTORY_IMPL_get_key_data(int32_t algorithm_id, uint8_t* password, int32_t password_length, uint8_t* salt, int32_t salt_length, int32_t iterations, int32_t key_length) {
-    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s password length = %d, salt length = %d, key length = %d (handler = %d)\n", __func__, password_length, salt_length, key_length, algorithm_id);
+    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s password length = %d, salt length = %d, key length = %d (handler = %d)\n", __func__, (int)password_length, (int)salt_length, (int)key_length, (int)algorithm_id);
     int32_t return_code = LLSEC_ERROR;
 
     /* Allocate secret key structure */
@@ -236,7 +235,7 @@ int32_t LLSEC_SECRET_KEY_FACTORY_IMPL_get_key_data(int32_t algorithm_id, uint8_t
  * @throws NativeException on error
  */
 int32_t LLSEC_SECRET_KEY_FACTORY_IMPL_get_close_id(int32_t algorithm_id) {
-    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s (handler = %d)\n", __func__, algorithm_id);
+    LLSEC_SECRET_KEY_FACTORY_DEBUG_TRACE("%s (handler = %d)\n", __func__, (int)algorithm_id);
 
     LLSEC_SECRET_KEY_FACTORY_IMPL_algorithm* algorithm = (LLSEC_SECRET_KEY_FACTORY_IMPL_algorithm*)algorithm_id;
     // cppcheck-suppress misra-c2012-11.1 // Abstract data type for SNI usage

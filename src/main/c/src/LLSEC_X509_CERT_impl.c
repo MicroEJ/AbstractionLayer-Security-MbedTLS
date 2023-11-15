@@ -29,11 +29,11 @@ extern "C" {
 
 #define LLSEC_X509_UNKNOWN_FORMAT ((int)(-1))
 
-static mbedtls_x509_crt* get_x509_certificate(int8_t* cert_data, int32_t len, int* cert_format);
+static mbedtls_x509_crt* get_x509_certificate(int8_t* cert_data, int32_t len, int32_t* cert_format);
 static int32_t LLSEC_X509_CERT_mbedtls_close_key(int32_t native_id);
 
-static mbedtls_x509_crt* get_x509_certificate(int8_t* cert_data, int32_t len, int* cert_format) {
-    LLSEC_X509_DEBUG_TRACE("%s 00. cert_len:%d\n", __func__, len);
+static mbedtls_x509_crt* get_x509_certificate(int8_t* cert_data, int32_t len, int32_t* cert_format) {
+    LLSEC_X509_DEBUG_TRACE("%s 00. cert_len:%d\n", __func__, (int)len);
 
     mbedtls_x509_crt* new_cert = NULL;
     int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
@@ -268,6 +268,48 @@ int32_t LLSEC_X509_CERT_IMPL_verify(int8_t* cert_data, int32_t cert_data_length,
             LLSEC_X509_DEBUG_TRACE("LLSEC_X509 > verify error");
             (void)SNI_throwNativeException(LLSEC_ERROR, "Error x509 verify failed");
             return_code = LLSEC_ERROR;
+        }
+    }
+
+    if(NULL != x509) {
+        mbedtls_x509_crt_free(x509);
+    }
+
+    return return_code;
+}
+
+/**
+ * @brief Checks that the certificate is currently valid, i.e. the current time is within the specified validity period.
+ *
+ * @param[in] cert_data						The X509 certificate.
+ * @param[in] cert_data_length				The certificate length.
+ *
+ * @return {@link J_SEC_NO_ERROR} on success, {@link J_X509_CERT_EXPIRED_ERROR} if certificate expired,
+ * {@link J_X509_CERT_NOT_YET_VALID_ERROR} if certificate is not yet valid.
+ *
+ * @throws NativeException on error.
+ */
+int32_t LLSEC_X509_CERT_IMPL_check_validity(int8_t* cert_data, int32_t cert_data_length) {
+    LLSEC_X509_DEBUG_TRACE("%s \n", __func__);
+    int return_code = LLSEC_SUCCESS;
+
+    mbedtls_x509_crt* x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
+    if (NULL == x509) {
+        (void)SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
+        return_code = LLSEC_ERROR;
+    }
+
+    if (LLSEC_SUCCESS == return_code) {
+        int mbedtls_is_past = mbedtls_x509_time_is_past(&x509->valid_to);
+        int mbedtls_is_future = mbedtls_x509_time_is_future(&x509->valid_from);
+        if (LLSEC_MBEDTLS_SUCCESS != mbedtls_is_past) {
+            LLSEC_X509_DEBUG_TRACE("LLSEC_X509 time is past");
+            return_code = J_X509_CERT_EXPIRED_ERROR;
+        } else if (LLSEC_MBEDTLS_SUCCESS != mbedtls_is_future) {
+            LLSEC_X509_DEBUG_TRACE("LLSEC_X509 time is future");
+            return_code = J_X509_CERT_NOT_YET_VALID_ERROR;
+        } else {
+            return_code = J_SEC_NO_ERROR;
         }
     }
 

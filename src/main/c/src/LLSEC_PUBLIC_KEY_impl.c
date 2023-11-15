@@ -22,8 +22,32 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include "mbedtls/version.h"
+#if (MBEDTLS_VERSION_MAJOR == 2)
+#include "mbedtls/pk_internal.h"
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+#include "pk_wrap.h"
+#else
+#error "Unsupported mbedTLS major version"
+#endif
 #include "mbedtls/platform.h"
 #include "mbedtls/pk.h"
+
+/**
+ * @brief Public pk context.
+ * Received as input by the LLSEC_PUBLIC native functions, contains an initialized public key context
+ * that will be used by the public pk context.
+ */
+static void* pub_pk_ctx;
+
+static void *pub_ctx_alloc_func(void) {
+    return pub_pk_ctx;
+}
+
+static void pub_ctx_free_func(void *ctx) {
+    // nothing to do, context is received as input to the native function, so it must not be freed here
+    LLSEC_UNUSED_PARAM(ctx);
+}
 
 /**
  * @brief get max size for encoded key.
@@ -36,10 +60,11 @@
  */
 int32_t LLSEC_PUBLIC_KEY_IMPL_get_encoded_max_size(int32_t native_id) {
     LLSEC_PUBLIC_KEY_DEBUG_TRACE("%s \n", __func__);
-    int return_code = LLSEC_ERROR;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
 
     LLSEC_pub_key* key = (LLSEC_pub_key*)native_id;
+
+    int return_code = LLSEC_ERROR;
+    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
 
     mbedtls_pk_context pk;
     mbedtls_pk_type_t pk_type;
@@ -51,17 +76,27 @@ int32_t LLSEC_PUBLIC_KEY_IMPL_get_encoded_max_size(int32_t native_id) {
     }
 
     mbedtls_pk_init(&pk);
-    mbedtls_rc = mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(pk_type));
-    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-        (void)SNI_throwNativeException(mbedtls_rc, "Private key context setup failed");
-    } else {
-        pk.pk_ctx = (void*)key->key;
 
+    mbedtls_pk_info_t info;
+    (void)memcpy(&info, mbedtls_pk_info_from_type(pk_type), sizeof(mbedtls_pk_info_t));
+    info.ctx_alloc_func = pub_ctx_alloc_func;
+    info.ctx_free_func = pub_ctx_free_func;
+
+    pub_pk_ctx = (void*)key->key;
+
+    mbedtls_rc = mbedtls_pk_setup(&pk, &info);
+    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+        (void)SNI_throwNativeException(mbedtls_rc, "Public key context setup failed");
+    } else {
         char buf_local[LLSEC_PUBLIC_KEY_LOCAL_BUFFER_SIZE];
-        /* Write a public key to a SubjectPublicKeyInfo DER structure */
+        /*
+         * Write a public key to a SubjectPublicKeyInfo DER structure.
+         * mbedtls_pk_write_pubkey_der() API will write data at the end of the buffer, not at the beginning, so instead of getting the encoded max size (mbedTLS v3.x has macros, mbedTLS v2.x doesn't), get the encoded fixed size.
+         * LLSEC_PUBLIC_KEY_IMPL_get_encode() will then work straightforward with a fixed size and not a max size.
+         */
         int length = mbedtls_pk_write_pubkey_der(&pk, (unsigned char*)(&buf_local), sizeof(buf_local));
         if (0 > length) {
-            (void)SNI_throwNativeException(LLSEC_ERROR, "Encoded key max size get failed");
+            (void)SNI_throwNativeException(-length, "Encoded key max size get failed");
         } else {
             return_code = length;
         }
@@ -97,16 +132,22 @@ int32_t LLSEC_PUBLIC_KEY_IMPL_get_encode(int32_t native_id, uint8_t* output, int
     }
 
     mbedtls_pk_init(&pk);
-    mbedtls_rc = mbedtls_pk_setup(&pk, mbedtls_pk_info_from_type(pk_type));
-    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
-           (void)SNI_throwNativeException(mbedtls_rc, "Private key context setup failed");
-    } else {
-        pk.pk_ctx = (void*)key->key;
 
-        /*Write a public key to a SubjectPublicKeyInfo DER structure*/
+    mbedtls_pk_info_t info;
+    (void)memcpy(&info, mbedtls_pk_info_from_type(pk_type), sizeof(mbedtls_pk_info_t));
+    info.ctx_alloc_func = pub_ctx_alloc_func;
+    info.ctx_free_func = pub_ctx_free_func;
+
+    pub_pk_ctx = (void*)key->key;
+
+    mbedtls_rc = mbedtls_pk_setup(&pk, &info);
+    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+        (void)SNI_throwNativeException(mbedtls_rc, "Public key context setup failed");
+    } else {
+        /* Write a public key to a SubjectPublicKeyInfo DER structure */
         int length = mbedtls_pk_write_pubkey_der(&pk, output, outputLength);
         if (0 > length) {
-            (void)SNI_throwNativeException(LLSEC_ERROR, "Public key encoding failed");
+            (void)SNI_throwNativeException(-length, "Public key encoding failed");
         } else {
             return_code = length;
         }
@@ -127,15 +168,33 @@ int32_t LLSEC_PUBLIC_KEY_IMPL_get_encode(int32_t native_id, uint8_t* output, int
  */
 int32_t LLSEC_PUBLIC_KEY_IMPL_get_output_size(int32_t native_id) {
     LLSEC_PUBLIC_KEY_DEBUG_TRACE("%s \n", __func__);
+    int return_code = LLSEC_ERROR;
+    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
 
     LLSEC_pub_key* key = (LLSEC_pub_key*)native_id;
-    int32_t return_code = LLSEC_SUCCESS;
+    mbedtls_pk_context pk;
+    mbedtls_pk_type_t pk_type;
 
     if (TYPE_RSA == key->type) {
-        return_code = mbedtls_rsa_get_len((mbedtls_rsa_context*)key->key);
+        pk_type = MBEDTLS_PK_RSA;
     } else {
-        //No limit from EC point of view, return a big enough buffer
-        return_code = LLSEC_PUBLIC_KEY_LOCAL_BUFFER_SIZE;
+        pk_type = MBEDTLS_PK_ECKEY;
+    }
+
+    mbedtls_pk_init(&pk);
+
+    mbedtls_pk_info_t info;
+    (void)memcpy(&info, mbedtls_pk_info_from_type(pk_type), sizeof(mbedtls_pk_info_t));
+    info.ctx_alloc_func = pub_ctx_alloc_func;
+    info.ctx_free_func = pub_ctx_free_func;
+
+    pub_pk_ctx = (void*)key->key;
+
+    mbedtls_rc = mbedtls_pk_setup(&pk, &info);
+    if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
+        (void)SNI_throwNativeException(mbedtls_rc, "Public key context setup failed");
+    } else {
+        return_code = mbedtls_pk_get_bitlen(&pk) / 8;
     }
 
     return return_code;

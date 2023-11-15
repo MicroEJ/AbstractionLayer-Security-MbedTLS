@@ -24,6 +24,7 @@
 #include <time.h>
 
 #include "LLSEC_mbedtls.h"
+#include "mbedtls/version.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -141,7 +142,13 @@ static int LLSEC_SIG_mbedtls_ec_sign(LLSEC_SIG_algorithm* algorithm, uint8_t* si
     }
     if (LLSEC_SUCCESS == return_code) {
         mbedtls_ecdsa_context* ctx = (mbedtls_ecdsa_context*)priv_key->key;
+#if (MBEDTLS_VERSION_MAJOR == 2)
         mbedtls_rc = mbedtls_ecdsa_write_signature(ctx, MBEDTLS_MD_SHA256, digest, (size_t)digest_length, signature, (size_t*)signature_length, mbedtls_ctr_drbg_random, &ctr_drbg);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+        mbedtls_rc = mbedtls_ecdsa_write_signature(ctx, MBEDTLS_MD_SHA256, digest, (size_t)digest_length, signature, (size_t)*signature_length, (size_t*)signature_length, mbedtls_ctr_drbg_random, &ctr_drbg);
+#else
+        #error "Unsupported mbedTLS major version"
+#endif
         LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ecdsa_write_signature: %d\n", __func__, mbedtls_rc);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
@@ -163,11 +170,12 @@ static int LLSEC_SIG_mbedtls_verify(LLSEC_SIG_algorithm* algorithm, uint8_t* sig
 
     LLSEC_SIG_DEBUG_TRACE("%s \n", __func__);
 
-    mbedtls_entropy_context entropy;
-    mbedtls_ctr_drbg_context ctr_drbg;
-
     int return_code = LLSEC_SUCCESS;
     int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
+
+#if (MBEDTLS_VERSION_MAJOR == 2)
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
 
     mbedtls_entropy_init(&entropy);
     mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -184,18 +192,28 @@ static int LLSEC_SIG_mbedtls_verify(LLSEC_SIG_algorithm* algorithm, uint8_t* sig
             return_code = LLSEC_ERROR;
         }
     }
+#endif
+
     if (LLSEC_SUCCESS == return_code) {
+#if (MBEDTLS_VERSION_MAJOR == 2)
         mbedtls_rc = mbedtls_rsa_pkcs1_verify((mbedtls_rsa_context*)pub_key->key, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PUBLIC, MBEDTLS_MD_SHA256, digest_length, digest, signature);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+        mbedtls_rc = mbedtls_rsa_pkcs1_verify((mbedtls_rsa_context*)pub_key->key, MBEDTLS_MD_SHA256, digest_length, digest, signature);
+#else
+        #error "Unsupported mbedTLS major version"
+#endif
         LLSEC_SIG_DEBUG_TRACE("%s mbedtls_rsa_pkcs1_verify: %d\n", __func__, mbedtls_rc);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
 
+#if (MBEDTLS_VERSION_MAJOR == 2)
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
     // cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
     mbedtls_free((void*)pers);
+#endif
 
     LLSEC_SIG_DEBUG_TRACE("%s: return_code = %d\n", __func__, return_code);
     return return_code;
@@ -228,14 +246,20 @@ static int LLSEC_SIG_mbedtls_sign(LLSEC_SIG_algorithm* algorithm, uint8_t* signa
         }
     }
     if (LLSEC_SUCCESS == return_code) {
+#if (MBEDTLS_VERSION_MAJOR == 2)
         mbedtls_rc = mbedtls_rsa_pkcs1_sign((mbedtls_rsa_context*)priv_key->key, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_RSA_PRIVATE, MBEDTLS_MD_SHA256, digest_length, digest, signature);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+        mbedtls_rc = mbedtls_rsa_pkcs1_sign((mbedtls_rsa_context*)priv_key->key, mbedtls_ctr_drbg_random, &ctr_drbg, MBEDTLS_MD_SHA256, digest_length, digest, signature);
+#else
+        #error "Unsupported mbedTLS major version"
+#endif
         LLSEC_SIG_DEBUG_TRACE("%s mbedtls_rsa_pkcs1_sign: %d\n", __func__, mbedtls_rc);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
     if (LLSEC_SUCCESS == return_code) {
-        *signature_length = ((mbedtls_rsa_context*)priv_key->key)->len;
+        *signature_length = mbedtls_rsa_get_len((mbedtls_rsa_context*)priv_key->key);
     }
 
     mbedtls_ctr_drbg_free(&ctr_drbg);

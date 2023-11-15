@@ -21,15 +21,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- include mbedtls
-*/
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-// cppcheck-suppress preprocessorErrorDirective // macro include
-#include MBEDTLS_CONFIG_FILE
-#endif
 #include "mbedtls/aes.h"
 #include "mbedtls/platform.h"
 #include "mbedtls/platform_util.h"
@@ -66,7 +57,6 @@ static int mbedtls_cipher_decrypt(void* native_id, uint8_t* buffer, int32_t buff
 static int mbedtls_cipher_encrypt(void* native_id, uint8_t* buffer, int32_t buffer_length, uint8_t* output);
 static void mbedtls_cipher_close(void* native_id);
 
-// cppcheck-suppress misra-c2012-5.9 // Define here for code readability even if it called once in this file.
 // cppcheck-suppress misra-c2012-8.9 // Define here for code readability even if it called once in this file.
 static LLSEC_CIPHER_transformation available_transformations[1] = {
     {

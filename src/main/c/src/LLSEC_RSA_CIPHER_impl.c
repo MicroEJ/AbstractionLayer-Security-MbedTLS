@@ -23,15 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- include mbedtls
-*/
-#if !defined(MBEDTLS_CONFIG_FILE)
-#include "mbedtls/config.h"
-#else
-// cppcheck-suppress preprocessorErrorDirective // macro include
-#include MBEDTLS_CONFIG_FILE
-#endif
+#include "mbedtls/version.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/rsa.h"
@@ -165,7 +157,13 @@ static int32_t llsec_rsa_cipher_decrypt(void* native_id, uint8_t* buffer, int32_
 
     size_t out_len = 0;
     int32_t return_code = LLSEC_SUCCESS;
+#if (MBEDTLS_VERSION_MAJOR == 2)
     int mbedtls_rc = mbedtls_rsa_pkcs1_decrypt(&cipher_ctx->mbedtls_ctx, mbedtls_ctr_drbg_random, &cipher_ctx->ctr_drbg, MBEDTLS_RSA_PRIVATE, &out_len, buffer, output, mbedtls_rsa_get_len(&cipher_ctx->mbedtls_ctx));
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+    int mbedtls_rc = mbedtls_rsa_pkcs1_decrypt(&cipher_ctx->mbedtls_ctx, mbedtls_ctr_drbg_random, &cipher_ctx->ctr_drbg, &out_len, buffer, output, mbedtls_rsa_get_len(&cipher_ctx->mbedtls_ctx));
+#else
+    #error "Unsupported mbedTLS major version"
+#endif
     if (LLSEC_MBEDTLS_SUCCESS == mbedtls_rc) {
         return_code = out_len;
     } else {
@@ -181,7 +179,13 @@ static int32_t llsec_rsa_cipher_encrypt(void* native_id, uint8_t* buffer, int32_
     LLSEC_RSA_CIPHER_DEBUG_TRACE("%s\n", __func__);
 
     int32_t return_code = LLSEC_SUCCESS;
+#if (MBEDTLS_VERSION_MAJOR == 2)
     int mbedtls_rc = mbedtls_rsa_pkcs1_encrypt(&cipher_ctx->mbedtls_ctx, mbedtls_ctr_drbg_random, &cipher_ctx->ctr_drbg, MBEDTLS_RSA_PUBLIC, buffer_length, buffer, output);
+#elif (MBEDTLS_VERSION_MAJOR == 3)
+    int mbedtls_rc = mbedtls_rsa_pkcs1_encrypt(&cipher_ctx->mbedtls_ctx, mbedtls_ctr_drbg_random, &cipher_ctx->ctr_drbg, buffer_length, buffer, output);
+#else
+    #error "Unsupported mbedTLS major version"
+#endif
     if (LLSEC_MBEDTLS_SUCCESS == mbedtls_rc) {
         return_code = mbedtls_rsa_get_len(&cipher_ctx->mbedtls_ctx);
     } else {

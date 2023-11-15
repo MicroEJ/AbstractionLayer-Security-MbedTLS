@@ -44,7 +44,6 @@ static int32_t native_ids = 1;
  */
 int32_t LLSEC_RANDOM_IMPL_init(void) {
     int32_t return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
     const char* pers = llsec_gen_random_str_internal(8);
     int32_t native_id;
@@ -52,7 +51,7 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
     if (0 == initialized) {
         mbedtls_ctr_drbg_init(&ctr_drbg);
         mbedtls_entropy_init(&entropy);
-        mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t*)pers, 0);
+        int mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t*)pers, 0);
         if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             (void)SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
             LLSEC_RANDOM_IMPL_close(0);
@@ -93,7 +92,7 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
  */
 void LLSEC_RANDOM_IMPL_close(int32_t native_id) {
     LLSEC_UNUSED_PARAM(native_id);
-    LLSEC_RANDOM_DEBUG_TRACE("%s native_id:%d\n", __func__, native_id);
+    LLSEC_RANDOM_DEBUG_TRACE("%s native_id:%d\n", __func__, (int)native_id);
     /*To suport multi-instance, do not free the ctr_drbg & entropy here!*/
     //mbedtls_ctr_drbg_free(&ctr_drbg);
     //mbedtls_entropy_free(&entropy);
@@ -112,10 +111,10 @@ void LLSEC_RANDOM_IMPL_close(int32_t native_id) {
 void LLSEC_RANDOM_IMPL_next_bytes(int32_t native_id, uint8_t* rnd, int32_t size) {
     LLSEC_UNUSED_PARAM(native_id);
 
-    LLSEC_RANDOM_DEBUG_TRACE("%s rdn:0x%p, %d\n", __func__, rnd, size);
+    LLSEC_RANDOM_DEBUG_TRACE("%s rdn:0x%p, %d\n", __func__, rnd, (int)size);
     uint32_t bytes_left = size;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     while (bytes_left > (uint32_t)0) {
+        int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
         if (bytes_left > (uint32_t)MBEDTLS_CTR_DRBG_MAX_REQUEST) {
             mbedtls_rc = mbedtls_ctr_drbg_random(&ctr_drbg, rnd, MBEDTLS_CTR_DRBG_MAX_REQUEST);
             bytes_left -= (uint32_t)MBEDTLS_CTR_DRBG_MAX_REQUEST;
@@ -200,6 +199,7 @@ int32_t LLSEC_RANDOM_IMPL_get_close_id(void) {
  * @note This function should only be used to provide a personalisation string
  *          when calling mbedtls_ctr_drbg_seed.
  */
+// cppcheck-suppress misra-c2012-8.7 // External API which is called also internally, cannot be made static
 char* llsec_gen_random_str_internal(int length) {
     char* return_code = NULL;
     char* str_ran;

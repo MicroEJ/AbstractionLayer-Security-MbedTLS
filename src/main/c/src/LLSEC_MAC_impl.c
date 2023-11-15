@@ -65,7 +65,6 @@ static LLSEC_MAC_algorithm available_mac_algorithms[1] = {
 static int mbedtls_mac_HmacSha256_init(void** native_id, uint8_t* key, int32_t key_length) {
     LLSEC_MAC_DEBUG_TRACE("%s \n", __func__);
     int return_code = LLSEC_SUCCESS;
-    int mbedtls_rc = LLSEC_MBEDTLS_SUCCESS;
     mbedtls_md_context_t* md_ctx = LLSEC_calloc(1, sizeof(mbedtls_md_context_t));
     if (NULL == md_ctx) {
         return_code = LLSEC_ERROR;
@@ -73,13 +72,13 @@ static int mbedtls_mac_HmacSha256_init(void** native_id, uint8_t* key, int32_t k
 
     if (LLSEC_SUCCESS == return_code) {
         mbedtls_md_init(md_ctx);
-        mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1);
+        int mbedtls_rc = mbedtls_md_setup(md_ctx, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 1);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
     }
     if (LLSEC_SUCCESS == return_code) {
-        mbedtls_rc = mbedtls_md_hmac_starts(md_ctx, key, key_length);
+        int mbedtls_rc = mbedtls_md_hmac_starts(md_ctx, key, key_length);
         if(LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
             return_code = LLSEC_ERROR;
         }
