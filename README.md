@@ -25,34 +25,30 @@ Here is a non exhaustive list of tested environments:
     - Espressif IoT Development Framework (``esp-idf``) v3.3.4 and v4.3.2 (using GNU GCC toolchain)
     - IAR Embedded Workbench 9.30.1
 - MbedTLS versions:
-    - MbedTLS v2.16.5, v2.16.11 and v2.28.0
+    - MbedTLS v2.16.5, v2.16.11, v2.28.0, v2.28.1 and v3.2.1
 
 # MISRA Compliance
 
 This Abstraction Layer implementation is MISRA-compliant (MISRA C:2012) with some noted exception. 
-It has been verified with Cppcheck v2.8.0. Here is the list of deviations from MISRA standard:
+It has been verified with Cppcheck v2.10. Here is the list of deviations from MISRA standard:
 
-| Deviation  | Category | Justification                                                      |
-|:----------:|:--------:|:------------------------------------------------------------------ |
-|  Rule 8.4  | Required | The Cppcheck analysis is made only on this LL code                 |
-|  Rule 8.7  | Advisory | The Cppcheck analysis is made only on this LL code                 |
-|  Rule 8.9  | Advisory | Global variable or for code readability                            |
-| Rule 10.8  | Required | Boundries of the value is controlled                               |
-| Rule 11.1  | Required | Abstract data type for SNI usage                                   |
-| Rule 11.3  | Required | Cast for matching MbedTLS function signature                       |
-| Rule 11.4  | Advisory | Abstract data type for SNI usage                                   |
-| Rule 11.5  | Advisory | Abstract data type for SNI usage                                   |
-| Rule 11.6  | Required | Abstract data type for SNI usage                                   |
-| Rule 11.8  | Required | Cast to match used generic library function ```mbedtls_free```     |
-| Rule 17.8  | Advisory | Used as an output parameter                                        |
-| Rule 21.6  | Required | Used for debug purpose only                                        |
-| Rule 21.10 | Required | Type defined in library used in MbedTLS                            |
+| Deviation  | Category | Justification                                                       |
+|:----------:|:--------:|:------------------------------------------------------------------- |
+|  Rule 2.3  | Advisory | A type can be defined at API level and not used by the application  |
+|  Rule 2.4  | Advisory | A tag can be defined at API level and not used by the application   |
+|  Rule 2.5  | Advisory | A macro can be defined at API level and not used by the application |
+|  Rule 8.4  | Required | The Cppcheck analysis is made only on this LL code                  |
+| Rule 11.3  | Required | Cast for matching MbedTLS function signature                        |
+| Rule 11.4  | Advisory | Abstract data type for SNI usage                                    |
+| Rule 11.5  | Advisory | Abstract data type for SNI usage                                    |
+| Rule 19.2  | Advisory | Using union is useful for C library design                          |
+| Rule 21.3  | Required | Usage forced by MbedTLS library (mbedtls_calloc / mbedtls_free)     |
 
 # Dependencies
 
 - MicroEJ Architecture `7.x` or higher.
 - MbedTLS `v2.16.5` or higher.
-- Foundation library Security `v1.3.1`
+- Foundation library Security `v1.5.0`
 
 # Source
 
@@ -64,5 +60,5 @@ None.
 
 	
 ---
-_Copyright 2021-2023 MicroEJ Corp. All rights reserved._
+_Copyright 2021-2024 MicroEJ Corp. All rights reserved._
 _Use of this source code is governed by a BSD-style license that can be found with this software._
