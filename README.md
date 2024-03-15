@@ -41,6 +41,7 @@ It has been verified with Cppcheck v2.10. Here is the list of deviations from MI
 | Rule 11.3  | Required | Cast for matching MbedTLS function signature                        |
 | Rule 11.4  | Advisory | Abstract data type for SNI usage                                    |
 | Rule 11.5  | Advisory | Abstract data type for SNI usage                                    |
+| Rule 19.2  | Advisory | Using union is useful for C library design                          |
 | Rule 21.3  | Required | Usage forced by MbedTLS library (mbedtls_calloc / mbedtls_free)     |
 
 # Dependencies
@@ -59,5 +60,5 @@ None.
 
 	
 ---
-_Copyright 2021-2023 MicroEJ Corp. All rights reserved._
+_Copyright 2021-2024 MicroEJ Corp. All rights reserved._
 _Use of this source code is governed by a BSD-style license that can be found with this software._

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2024-03-08
+
+### Added
+
+- Add support for `DESede/CBC/NoPadding` cipher.
+
+### Fixed
+
+- Fix `LLSEC_PRIVATE_KEY_IMPL_get_encode` returning now the private key in PKCS#8 DER structure instead or PKCS#1 or SEC1 DER structure.
+- Fix a potential memory retention in cryptographic components.
+- Fixing a problem where using the same initialization vector (IV) for symmetric ciphers during next doFinal caused issues in cipher operations.
+
+### Changed
+
+- Generate RSA keypair with PKCS#1 v1.5 padding.
+
 ## [1.4.0] - 2023-11-15
 
 ### Changed
@@ -108,5 +124,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial revision.
 
 ---
-_Copyright 2021-2023 MicroEJ Corp. All rights reserved._
+_Copyright 2021-2024 MicroEJ Corp. All rights reserved._
 _Use of this source code is governed by a BSD-style license that can be found with this software._  
