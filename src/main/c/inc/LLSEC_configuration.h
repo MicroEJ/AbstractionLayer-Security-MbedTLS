@@ -1,10 +1,10 @@
 /*
  * C
  *
- * Copyright 2021-2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2021-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
- 
+
 /**
  * @file
  * @brief Security natives configuration.
@@ -29,8 +29,8 @@
 #define LLSEC_UNUSED_PARAM(x)                     ((void)(x))
 
 /*
-* Used for private and public key generation
-*/
+ * Used for private and public key generation
+ */
 #define LLSEC_PRIVATE_KEY_LOCAL_BUFFER_SIZE       (3072)
 #define LLSEC_PUBLIC_KEY_LOCAL_BUFFER_SIZE        (3072)
 

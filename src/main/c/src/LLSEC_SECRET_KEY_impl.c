@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -28,16 +28,16 @@
  * @note Throws NativeException on error.
  */
 int32_t LLSEC_SECRET_KEY_IMPL_get_encoded_max_size(int32_t native_id) {
-    LLSEC_SECRET_KEY_DEBUG_TRACE("%s (native_id = %d)\n", __func__, (int)native_id);
-    int32_t max_size = 0;
+	LLSEC_SECRET_KEY_DEBUG_TRACE("%s (native_id = %d)\n", __func__, (int)native_id);
+	int32_t max_size = 0;
 
-    LLSEC_secret_key* secret_key = (LLSEC_secret_key*)native_id;
-    if(NULL != secret_key) {
-        max_size = secret_key->key_length;
-    }
+	LLSEC_secret_key *secret_key = (LLSEC_secret_key *)native_id;
+	if (NULL != secret_key) {
+		max_size = secret_key->key_length;
+	}
 
-    LLSEC_SECRET_KEY_DEBUG_TRACE("%s Return size = %d\n", __func__, (int)max_size);
-    return max_size;
+	LLSEC_SECRET_KEY_DEBUG_TRACE("%s Return size = %d\n", __func__, (int)max_size);
+	return max_size;
 }
 
 /**
@@ -51,14 +51,14 @@ int32_t LLSEC_SECRET_KEY_IMPL_get_encoded_max_size(int32_t native_id) {
  *
  * @note Throws NativeException on error.
  */
-int32_t LLSEC_SECRET_KEY_IMPL_get_encoded(int32_t native_id, uint8_t* output, int32_t output_length) {
-    LLSEC_SECRET_KEY_DEBUG_TRACE("%s (native_id = %d)\n", __func__, (int)native_id);
+int32_t LLSEC_SECRET_KEY_IMPL_get_encoded(int32_t native_id, uint8_t *output, int32_t output_length) {
+	LLSEC_SECRET_KEY_DEBUG_TRACE("%s (native_id = %d)\n", __func__, (int)native_id);
 
-    LLSEC_secret_key* secret_key = (LLSEC_secret_key*)native_id;
-    if(NULL != secret_key) {
-        (void)memcpy(output, secret_key->key, output_length);
-    }
+	LLSEC_secret_key *secret_key = (LLSEC_secret_key *)native_id;
+	if (NULL != secret_key) {
+		(void)memcpy(output, secret_key->key, output_length);
+	}
 
-    LLSEC_SECRET_KEY_DEBUG_TRACE("%s Return size = %d\n", __func__, (int)output_length);
-    return output_length;
+	LLSEC_SECRET_KEY_DEBUG_TRACE("%s Return size = %d\n", __func__, (int)output_length);
+	return output_length;
 }

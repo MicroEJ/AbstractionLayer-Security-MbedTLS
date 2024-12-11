@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2024-12-10
+
+### Added
+
+- Support for HMAC with MD5 and SHA1.
+
+### Changed
+
+- Uncrustify: apply MicroEJ coding style
+
+### Fixed
+
+- `mbedtls_pkcs5_pbkdf2_hmac_ext` called instead of `mbedtls_pkcs5_pbkdf2_hmac` for MbedTLS versions >= 3.5.0 and HMAC context is not setup anymore because it is not needed.
+
 ## [1.5.0] - 2024-03-08
 
 ### Added
