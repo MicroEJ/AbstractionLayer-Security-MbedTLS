@@ -1,7 +1,7 @@
 /*
  * C
  *
- * Copyright 2023-2024 MicroEJ Corp. All rights reserved.
+ * Copyright 2023-2025 MicroEJ Corp. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be found with this software.
  */
 
@@ -20,9 +20,9 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/pkcs5.h"
 
-#define MBEDTLS_VERSION_OVER_3_5         \
-		((MBEDTLS_VERSION_MAJOR) > 3) || \
-		(((MBEDTLS_VERSION_MAJOR) == 3) && ((MBEDTLS_VERSION_MINOR) >= 5)
+#define MBEDTLS_VERSION_OVER_3_5          \
+		(((MBEDTLS_VERSION_MAJOR) > 3) || \
+		 (((MBEDTLS_VERSION_MAJOR) == 3) && ((MBEDTLS_VERSION_MINOR) >= 5)))
 
 typedef int32_t (*LLSEC_SECRET_KEY_FACTORY_get_key_data)(LLSEC_secret_key *secret_key, mbedtls_md_type_t md_type,
                                                          uint8_t *password, int32_t password_length, uint8_t *salt,
