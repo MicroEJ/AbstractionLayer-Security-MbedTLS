@@ -1,5 +1,5 @@
-![SDK](https://shields.microej.com/endpoint?url=https://repository.microej.com/packages/badges/sdk_5.6.json)
-![ARCH](https://shields.microej.com/endpoint?url=https://repository.microej.com/packages/badges/arch_7.18.json)
+![SDK](https://shields.microej.com/endpoint?url=https://repository.microej.com/packages/badges/sdk_6.0.json)
+![ARCH](https://shields.microej.com/endpoint?url=https://repository.microej.com/packages/badges/arch_8.3.json)
 
 # Overview
 
@@ -60,5 +60,5 @@ None.
 
 	
 ---
-_Copyright 2021-2024 MicroEJ Corp. All rights reserved._
+_Copyright 2021-2025 MicroEJ Corp. All rights reserved._
 _Use of this source code is governed by a BSD-style license that can be found with this software._

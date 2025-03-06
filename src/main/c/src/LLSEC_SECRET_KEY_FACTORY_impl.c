@@ -8,9 +8,8 @@
 /**
  * @file
  * @brief MicroEJ Security low level API
- * @author @CCO_AUTHOR@
- * @version @CCO_VERSION@
- * @date @CCO_DATE@
+ * @author MicroEJ Developer Team
+ * @version 1.6.2
  */
 
 #include <LLSEC_SECRET_KEY_FACTORY_impl.h>
