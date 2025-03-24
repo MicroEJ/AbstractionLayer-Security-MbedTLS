@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API
  * @author MicroEJ Developer Team
- * @version 1.6.2
+ * @version 1.6.3
  */
 
 #include <LLSEC_SECRET_KEY_impl.h>

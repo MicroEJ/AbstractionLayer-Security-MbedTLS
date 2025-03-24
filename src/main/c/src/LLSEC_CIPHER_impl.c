@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 1.6.2
+ * @version 1.6.3
  */
 
 #include <LLSEC_CIPHER_impl.h>

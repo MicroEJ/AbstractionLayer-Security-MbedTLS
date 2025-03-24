@@ -9,7 +9,7 @@
  * @file
  * @brief Security natives mbedtls structs.
  * @author MicroEJ Developer Team
- * @version 1.6.2
+ * @version 1.6.3
  */
 
 #ifndef LLSEC_MBEDTLS_H

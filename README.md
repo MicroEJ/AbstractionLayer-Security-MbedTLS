@@ -9,8 +9,7 @@ This component implements the `LLSEC` Low Level API for MicroEJ platforms connec
 
 # Usage
 
-Add the following line to your `module.ivy` file:
-> `<dependency org="com.microej.clibrary.llimpl" name="security-mbedtls" rev="..."/>`
+These sources can be included in the VEE Port with the method you prefer, by using this repository as a submodule or by doing a copy of the sources in the VEE Port repository.
 
 # Requirements
 
@@ -46,9 +45,7 @@ It has been verified with Cppcheck v2.10. Here is the list of deviations from MI
 
 # Dependencies
 
-- MicroEJ Architecture `7.x` or higher.
 - MbedTLS `v2.16.5` or higher.
-- Foundation library Security `v1.5.0`
 
 # Source
 
