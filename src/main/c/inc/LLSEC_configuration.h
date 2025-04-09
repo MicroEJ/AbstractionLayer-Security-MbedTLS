@@ -9,29 +9,35 @@
  * @file
  * @brief Security natives configuration.
  * @author MicroEJ Developer Team
- * @version 1.6.3
+ * @version 2.0.1
  */
 
 #ifndef LLSEC_CONFIGURATION_H
 #define LLSEC_CONFIGURATION_H
 
-#include "microej_allocator.h"
-
-#define LLSEC_calloc                              microej_calloc
-#define LLSEC_free                                microej_free
-
-#define LLSEC_SUCCESS                             (0)
-#define LLSEC_ERROR                               (-1)
-
-#define LLSEC_MBEDTLS_SUCCESS                     (0)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define LLSEC_UNUSED_PARAM(x)                     ((void)(x))
+
+/* Enable local asserts by redirecting to the BSP's assert macro */
+#define LLSEC_ASSERT(x)                           ((void)(x))
 
 /*
  * Used for private and public key generation
  */
-#define LLSEC_PRIVATE_KEY_LOCAL_BUFFER_SIZE       (3072)
-#define LLSEC_PUBLIC_KEY_LOCAL_BUFFER_SIZE        (3072)
+#define LLSEC_PRIVATE_KEY_MAX_PKCS8_LEN           (3072)
+#define LLSEC_PUBLIC_KEY_MAX_DER_LEN              (3072)
+
+/* The longest ECP curve name defined in mbedtls is 15 char long and the buffer
+ * must be able to store the null terminating char */
+#define LLSEC_ECP_CURVE_NAME_BUFFER_LEN           (15 + 1)
+
+#define LLSEC_SECRET_KEY_MAX_PWD_LEN              256
+#define LLSEC_SECRET_KEY_MAX_SALT_LEN             64
+
+#define LLSEC_PERSONALIZATION_LEN                 (8)
 
 /*
  * Debug traces activation
@@ -85,6 +91,9 @@
 #endif
 #ifndef LLSEC_X509_DEBUG
 #define LLSEC_X509_DEBUG                          LLSEC_DEBUG_TRACE_DISABLE
+#endif
+#ifndef LLSEC_PROFILE
+#define LLSEC_PROFILE                             0
 #endif
 
 #if (LLSEC_CIPHER_DEBUG == LLSEC_DEBUG_TRACE_ENABLE || LLSEC_ALL_DEBUG == LLSEC_DEBUG_TRACE_ENABLE)
@@ -163,6 +172,60 @@
 #define LLSEC_X509_DEBUG_TRACE(...)               LLSEC_DEBUG_TRACE(__VA_ARGS__)
 #else
 #define LLSEC_X509_DEBUG_TRACE(...)               ((void)(0))
+#endif
+
+#if LLSEC_PROFILE
+
+#include <inttypes.h>
+#include <microej_time.h>
+
+#define LLSEC_PROFILE_START()       int64_t _profile_start_time = microej_time_get_current_time(1)
+#define LLSEC_PROFILE_END()                                                                     \
+		do {                                                                                    \
+			int64_t _profile_duration = microej_time_get_current_time(1) - _profile_start_time; \
+			LLSEC_DEBUG_TRACE("profile %s: %" PRId64 "ms\n", __func__, _profile_duration);      \
+		} while (0)
+
+#else
+
+#define LLSEC_PROFILE_START()       ((void)0)
+#define LLSEC_PROFILE_END()         ((void)0)
+
+#endif /*LLSEC_PROFILE*/
+
+/**
+ * Stack size in bytes allocated to the worker thread
+ *
+ * @note Stack analysis running the security test suite on ESP32-S3 FreeRTOS
+ * shows a lowest remaining size of 672 bytes (16% headroom). May need to be
+ * adjusted on a per-platform basis.
+ *
+ * @warning Some port of MbedTLS may be configured to run on a hardware
+ * accelerator and may require more stack than the default software
+ * implementation.
+ */
+#define LLSEC_WORKER_STACK_SIZE                     4096
+/**
+ * Priority of the thread running the worker.
+ *
+ * The worker thread should be set to run at a priority lower than the Java
+ * thread, so as to free execution time for the foreground application. Adjust
+ * accordingly.
+ *
+ * @note This value is RTOS dependent.
+ */
+#define LLSEC_WORKER_PRIORITY                       2
+/**
+ * Number of jobs that can be queued in the worker thread.
+ */
+#define LLSEC_WORKER_JOB_COUNT                      2
+/**
+ * Number of Java thread that can wait for a free job.
+ */
+#define LLSEC_WAITING_LIST_SIZE                     4
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* LLSEC_CONFIGURATION_H */

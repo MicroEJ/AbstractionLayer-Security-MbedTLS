@@ -4,6 +4,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-04-08
+
+### Changed
+- Update doxygen tag `@version` to `2.0.1`
+
+## [2.0.0] - 2025-04-04
+
+### Changed
+- Version bump to `2.0.0` to correct a previous incorrect minor release (`1.7.0`). No functional changes; this aligns the versioning with semantic versioning rules.
+- MISRA C2012 compliant. Deviations listed in `README.md`.
+
+## [1.7.0] - 2025-03-28
+
+### Fixed
+- Return `JFALSE` when an invalid signature is detected with `LLSEC_SIG_mbedtls_verify()` instead of throwing `NativeException`.
+- Use the ECP curve requested by the Java library instead of forcing `secp256r1`. The performance
+of the default curve selected by the Java library may differ from `secp256r1`, depending on the
+availability of hardware acceleration.
+
+### Changed
+- Implement the followings with Async Worker:
+  - `LLSEC_KEY_PAIR_GENERATOR_IMPL_generateKeyPair()`
+  - `LLSEC_SECRET_KEY_FACTORY_IMPL_get_key_data()`
+  - `LLSEC_RSA_CIPHER_IMPL_decrypt()`
+  - `LLSEC_RSA_CIPHER_IMPL_encrypt()`
+  - `LLSEC_SIG_IMPL_sign()`
+  - `LLSEC_SIG_IMPL_verify()`
+- `LLSEC_PRIVATE_KEY_impl.c` and `LLSEC_PUBLIC_KEY_impl.c`: `get_encoded_max_size()` now return a maximum fixed size. Resizing the DER buffer is handled by the Java implementation upon receiving the encoded data from `get_encode()`.
+
 ## [1.6.3] - 2025-03-24
 
 ### Changed
