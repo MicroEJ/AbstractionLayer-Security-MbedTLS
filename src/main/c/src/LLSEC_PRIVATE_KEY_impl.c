@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -91,7 +91,7 @@ static int pk_write_ec_key_asn1(mbedtls_pk_context *key, unsigned char *buf, uns
 }
 
 static int pk_write_key_pkcs8_der(mbedtls_pk_context *key, unsigned char *buf, int32_t size) {
-	mbedtls_pk_type_t pk_type;
+	mbedtls_pk_type_t pk_type = MBEDTLS_PK_NONE;
 	size_t par_len = 0;
 	unsigned char *p;
 	const char *oid;

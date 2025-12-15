@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -93,7 +93,8 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 #if (MBEDTLS_VERSION_MAJOR == 3)
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;
-	const char *pers = llsec_gen_random_str_internal(8);
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
 
 	mbedtls_entropy_init(&entropy);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -148,8 +149,6 @@ static int32_t LLSEC_KEY_FACTORY_RSA_mbedtls_get_private_key_data(LLSEC_priv_key
 #if (MBEDTLS_VERSION_MAJOR == 3)
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
-	// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-	mbedtls_free((void *)pers);
 #endif
 
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);
@@ -217,7 +216,8 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key 
 #if (MBEDTLS_VERSION_MAJOR == 3)
 	mbedtls_entropy_context entropy;
 	mbedtls_ctr_drbg_context ctr_drbg;
-	const char *pers = llsec_gen_random_str_internal(8);
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
 
 	mbedtls_entropy_init(&entropy);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
@@ -272,8 +272,6 @@ static int32_t LLSEC_KEY_FACTORY_EC_mbedtls_get_private_key_data(LLSEC_priv_key 
 #if (MBEDTLS_VERSION_MAJOR == 3)
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
-	// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-	mbedtls_free((void *)pers);
 #endif
 
 	LLSEC_KEY_FACTORY_DEBUG_TRACE("%s (rc = %d)\n", __func__, return_code);

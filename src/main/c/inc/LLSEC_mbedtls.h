@@ -9,7 +9,7 @@
  * @file
  * @brief Security natives mbedtls structs.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 #ifndef LLSEC_MBEDTLS_H
@@ -20,6 +20,7 @@
 #include "LLSEC_configuration.h"
 // This module is compatible with different versions of mbedtls. Include version.h to check compatibility
 #include "mbedtls/version.h"
+#include "mbedtls/x509_crt.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,12 +74,14 @@ typedef enum {
 /*key must be mbedtls_rsa_context or mbedtls_ecdsa_context TYPE*/
 typedef struct {
 	LLSEC_pub_key_type type;
-	void *key; /*mbedtls_rsa_context or mbedtls_ecdsa_context*/
+	void *key; /* pointer holding data of (or quick access to ) mbedtls_{rsa,ecdsa}_context */
+	mbedtls_x509_crt *x509; /* structure holding the x509 context */
 } LLSEC_priv_key;
 
 typedef struct {
 	LLSEC_pub_key_type type;
-	void *key; /*mbedtls_rsa_context or mbedtls_ecdsa_context*/
+	void *key; /* pointer holding data of (or quick access to ) mbedtls_{rsa,ecdsa}_context */
+	mbedtls_x509_crt *x509; /* structure holding the x509 context */
 } LLSEC_pub_key;
 
 typedef struct {
@@ -97,18 +100,6 @@ typedef struct {
  * @param[in] buflen Length of the buffer
  */
 void llsec_mbedtls_gen_random_str(char *str, size_t buflen);
-
-/**
- * Wraps llsec_mbedtls_gen_random_str with malloc
- *
- * @param[in] length Length of the resulting buffer (strlen() + 1)
- * @return Allocated random buffer, NULL on failure
- *
- * @note to be removed when all calls ported to llsec_mbedtls_gen_random_str().
- * This adds an unwanted failure case, buffer are short enough that they can
- * live on the stack.
- */
-char *llsec_gen_random_str_internal(int length);
 
 extern MICROEJ_ASYNC_WORKER_handle_t llsec_worker;
 

@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling

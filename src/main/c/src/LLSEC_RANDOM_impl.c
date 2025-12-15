@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -41,7 +41,8 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
 	int32_t return_code = LLSEC_SUCCESS;
 	LLSEC_RANDOM_DEBUG_TRACE("%s\n", __func__);
 	LLSEC_PROFILE_START();
-	const char *pers = llsec_gen_random_str_internal(8);
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
 	int32_t native_id;
 
 	if (0 == initialized) {
@@ -67,11 +68,6 @@ int32_t LLSEC_RANDOM_IMPL_init(void) {
 			LLSEC_RANDOM_IMPL_close(native_id);
 			return_code = LLSEC_ERROR;
 		}
-	}
-
-	if (NULL != pers) {
-		// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-		mbedtls_free((void *)pers);
 	}
 
 	if (LLSEC_SUCCESS == return_code) {

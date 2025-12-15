@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -164,6 +164,7 @@ static void mbedtls_aes_cipher_close(void *ctx) {
 	LLSEC_CIPHER_DEBUG_TRACE("%s native_id %p\n", __func__, ctx);
 	LLSEC_CIPHER_ctx *cipher_ctx = ctx;
 	mbedtls_aes_free(&cipher_ctx->mbedtls_ctx.aes_ctx);
+	mbedtls_free(cipher_ctx->iv);
 	mbedtls_free(cipher_ctx);
 }
 
@@ -171,6 +172,7 @@ static void mbedtls_des3_cipher_close(void *ctx) {
 	LLSEC_CIPHER_DEBUG_TRACE("%s native_id %p\n", __func__, ctx);
 	LLSEC_CIPHER_ctx *cipher_ctx = ctx;
 	mbedtls_des3_free(&cipher_ctx->mbedtls_ctx.des3_ctx);
+	mbedtls_free(cipher_ctx->iv);
 	mbedtls_free(cipher_ctx);
 }
 
@@ -327,7 +329,7 @@ int32_t LLSEC_CIPHER_IMPL_init(int32_t transformation_id, uint8_t is_decrypting,
 		// fail case, give back resources
 		if (cipher_ctx != NULL) {
 			if (cipher_ctx->iv != NULL) {
-				mbedtls_free(cipher_ctx);
+				mbedtls_free(cipher_ctx->iv);
 			}
 			mbedtls_free(cipher_ctx);
 		}

@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -130,18 +130,13 @@ static int LLSEC_SIG_mbedtls_ec_verify(LLSEC_SIG_algorithm *algorithm, const uin
 	mbedtls_entropy_init(&entropy);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
 
-	const char *pers = llsec_gen_random_str_internal(8);
-	if (NULL == pers) {
-		LLSEC_SIG_DEBUG_TRACE("%s llsec_gen_random_str_internal: allocation error\n", __func__);
-		return_code = LLSEC_ERROR;
-	}
-	if (LLSEC_SUCCESS == return_code) {
-		*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
-		                                    strlen(pers));
-		LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
-		if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
-			return_code = LLSEC_MBEDTLS_ERR;
-		}
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
+	*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
+	                                    strlen(pers));
+	LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
+	if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
+		return_code = LLSEC_MBEDTLS_ERR;
 	}
 	if (LLSEC_SUCCESS == return_code) {
 		mbedtls_ecdsa_context *ctx = (mbedtls_ecdsa_context *)pub_key->key;
@@ -171,8 +166,6 @@ static int LLSEC_SIG_mbedtls_ec_verify(LLSEC_SIG_algorithm *algorithm, const uin
 
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
-	// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-	mbedtls_free((void *)pers);
 
 	LLSEC_SIG_DEBUG_TRACE("%s: return_code = %d\n", __func__, return_code);
 	return return_code;
@@ -194,18 +187,13 @@ static int LLSEC_SIG_mbedtls_ec_sign(LLSEC_SIG_algorithm *algorithm, uint8_t *si
 	mbedtls_entropy_init(&entropy);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
 
-	const char *pers = llsec_gen_random_str_internal(8);
-	if (NULL == pers) {
-		LLSEC_SIG_DEBUG_TRACE("%s llsec_gen_random_str_internal: allocation error\n", __func__);
-		return_code = LLSEC_ERROR;
-	}
-	if (LLSEC_SUCCESS == return_code) {
-		*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
-		                                    strlen(pers));
-		LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
-		if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
-			return_code = LLSEC_MBEDTLS_ERR;
-		}
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
+	*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
+	                                    strlen(pers));
+	LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
+	if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
+		return_code = LLSEC_MBEDTLS_ERR;
 	}
 	if (LLSEC_SUCCESS == return_code) {
 		mbedtls_ecdsa_context *ctx = (mbedtls_ecdsa_context *)priv_key->key;
@@ -227,8 +215,6 @@ static int LLSEC_SIG_mbedtls_ec_sign(LLSEC_SIG_algorithm *algorithm, uint8_t *si
 
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
-	// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-	mbedtls_free((void *)pers);
 
 	LLSEC_SIG_DEBUG_TRACE("%s: return_code = %d\n", __func__, return_code);
 	return return_code;
@@ -329,18 +315,13 @@ static int LLSEC_SIG_mbedtls_sign(LLSEC_SIG_algorithm *algorithm, uint8_t *signa
 	mbedtls_entropy_init(&entropy);
 	mbedtls_ctr_drbg_init(&ctr_drbg);
 
-	const char *pers = llsec_gen_random_str_internal(8);
-	if (NULL == pers) {
-		LLSEC_SIG_DEBUG_TRACE("%s llsec_gen_random_str_internal: allocation error\n", __func__);
-		return_code = LLSEC_ERROR;
-	}
-	if (LLSEC_SUCCESS == return_code) {
-		*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
-		                                    strlen(pers));
-		LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
-		if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
-			return_code = LLSEC_MBEDTLS_ERR;
-		}
+	char pers[LLSEC_PERSONALIZATION_LEN];
+	llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
+	*mbedtls_rc = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers,
+	                                    strlen(pers));
+	LLSEC_SIG_DEBUG_TRACE("%s mbedtls_ctr_drbg_seed: %d\n", __func__, *mbedtls_rc);
+	if (LLSEC_MBEDTLS_SUCCESS != *mbedtls_rc) {
+		return_code = LLSEC_MBEDTLS_ERR;
 	}
 	if (LLSEC_SUCCESS == return_code) {
 		size_t rsa_len = mbedtls_rsa_get_len((mbedtls_rsa_context *)priv_key->key);
@@ -372,8 +353,6 @@ static int LLSEC_SIG_mbedtls_sign(LLSEC_SIG_algorithm *algorithm, uint8_t *signa
 
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
-	// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-	mbedtls_free((void *)pers);
 
 	LLSEC_SIG_DEBUG_TRACE("%s: return_code = %d\n", __func__, return_code);
 	return return_code;

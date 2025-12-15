@@ -9,7 +9,7 @@
  * @file
  * @brief Security natives configuration.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 #ifndef LLSEC_CONFIGURATION_H

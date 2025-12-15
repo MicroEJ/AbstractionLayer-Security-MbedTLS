@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -57,6 +57,7 @@ struct LLSEC_RSA_CIPHER_ctx {
 	const LLSEC_RSA_CIPHER_transformation *transformation;
 	mbedtls_rsa_context mbedtls_ctx;
 	mbedtls_ctr_drbg_context ctr_drbg;
+	mbedtls_entropy_context entropy;
 };
 
 static int32_t llsec_rsa_cipher_init(int32_t transformation_id, LLSEC_RSA_CIPHER_ctx *cipher_ctx, uint8_t is_decrypting,
@@ -145,19 +146,18 @@ static int32_t llsec_rsa_cipher_init(int32_t transformation_id, LLSEC_RSA_CIPHER
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
-		mbedtls_entropy_context entropy;
-		const char *pers = llsec_gen_random_str_internal(8);
+		char pers[LLSEC_PERSONALIZATION_LEN];
+		llsec_mbedtls_gen_random_str(pers, LLSEC_PERSONALIZATION_LEN);
 
-		mbedtls_entropy_init(&entropy);
+		mbedtls_entropy_init(&cipher_ctx->entropy);
 		mbedtls_ctr_drbg_init(&cipher_ctx->ctr_drbg);
 
-		mbedtls_rc = mbedtls_ctr_drbg_seed(&cipher_ctx->ctr_drbg, mbedtls_entropy_func, &entropy, (const uint8_t *)pers,
+		mbedtls_rc = mbedtls_ctr_drbg_seed(&cipher_ctx->ctr_drbg, mbedtls_entropy_func, &cipher_ctx->entropy,
+		                                   (const uint8_t *)pers,
 		                                   strlen(pers));
 		if (LLSEC_MBEDTLS_SUCCESS != mbedtls_rc) {
 			mbedtls_ctr_drbg_free(&cipher_ctx->ctr_drbg);
-			mbedtls_entropy_free(&entropy);
-			// cppcheck-suppress misra-c2012-11.8 // Cast for matching free function signature
-			mbedtls_free((void *)pers);
+			mbedtls_entropy_free(&cipher_ctx->entropy);
 			int32_t sni_rc = SNI_throwNativeException(mbedtls_rc, "mbedtls_ctr_drbg_seed failed");
 			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
@@ -222,6 +222,8 @@ static int32_t llsec_rsa_cipher_encrypt(LLSEC_RSA_CIPHER_ctx *cipher_ctx, const 
 static void llsec_rsa_cipher_close(void *native_id) {
 	LLSEC_RSA_CIPHER_DEBUG_TRACE("%s native_id:%p\n", __func__, native_id);
 	LLSEC_RSA_CIPHER_ctx *cipher_ctx = (LLSEC_RSA_CIPHER_ctx *)native_id;
+	mbedtls_ctr_drbg_free(&cipher_ctx->ctr_drbg);
+	mbedtls_entropy_free(&cipher_ctx->entropy);
 	mbedtls_rsa_free(&cipher_ctx->mbedtls_ctx);
 	mbedtls_free(native_id);
 }

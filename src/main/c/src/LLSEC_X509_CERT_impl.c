@@ -9,7 +9,7 @@
  * @file
  * @brief MicroEJ Security low level API implementation for MbedTLS Library.
  * @author MicroEJ Developer Team
- * @version 2.0.1
+ * @version 2.0.2
  */
 
 // set to 1 to enable profiling
@@ -34,6 +34,10 @@ extern "C" {
 static mbedtls_x509_crt * get_x509_certificate(int8_t *cert_data, int32_t len, int32_t *cert_format);
 static int32_t LLSEC_X509_CERT_mbedtls_close_key(int32_t native_id);
 
+/* This allocates a mbedtls_x509_crt context.
+ * WARNING: Some LLAPIs are accessing the key via a pointer into the certificate and storing it for later use.
+ * So freeing the mbedtls_x509_crt context will also free the pk/rsa/ec inside it!
+ */
 static mbedtls_x509_crt * get_x509_certificate(int8_t *cert_data, int32_t len, int32_t *cert_format) {
 	LLSEC_X509_DEBUG_TRACE("%s 00. cert_len:%d\n", __func__, (int)len);
 
@@ -101,13 +105,14 @@ static int32_t LLSEC_X509_CERT_mbedtls_close_key(int32_t native_id) {
 	int return_code = LLSEC_SUCCESS;
 	LLSEC_pub_key *key = (LLSEC_pub_key *)native_id;
 
-	if (TYPE_RSA == key->type) {
-		mbedtls_rsa_free((mbedtls_rsa_context *)key->key);
-	} else {
-		mbedtls_ecdsa_free((mbedtls_ecdsa_context *)key->key);
+	if (NULL != key) {
+		if (NULL != key->x509) {
+			mbedtls_x509_crt_free(key->x509);
+			mbedtls_free(key->x509);
+		}
+		mbedtls_free(key);
 	}
 
-	mbedtls_free(key);
 	return return_code;
 }
 
@@ -118,12 +123,12 @@ int32_t LLSEC_X509_CERT_IMPL_parse(int8_t *cert, int32_t off, int32_t len) {
 
 	int32_t format = LLSEC_X509_UNKNOWN_FORMAT;
 	int8_t *cert_data = &cert[off];
-	mbedtls_x509_crt *tmp_cert = get_x509_certificate(cert_data, len, &format);
+	mbedtls_x509_crt *x509 = get_x509_certificate(cert_data, len, &format);
 
 	/* Free the X509 certificate */
-	if (NULL != tmp_cert) {
-		mbedtls_x509_crt_free(tmp_cert);
-		mbedtls_free(tmp_cert);
+	if (NULL != x509) {
+		mbedtls_x509_crt_free(x509);
+		mbedtls_free(x509);
 	}
 
 	LLSEC_PROFILE_END();
@@ -161,13 +166,14 @@ int32_t LLSEC_X509_CERT_IMPL_get_x500_principal_data(int8_t *cert_data, int32_t 
 			return_code = LLSEC_ERROR;
 		} else {
 			(void)memcpy(principal_data, &buf[0], len);
-
-			/* Free the X509 certificate */
-			mbedtls_x509_crt_free(x509);
-			mbedtls_free(x509);
-
 			return_code = len;
 		}
+	}
+
+	/* Free the X509 certificate */
+	if (NULL != x509) {
+		mbedtls_x509_crt_free(x509);
+		mbedtls_free(x509);
 	}
 
 	LLSEC_PROFILE_END();
@@ -180,7 +186,6 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 	LLSEC_X509_DEBUG_TRACE("%s(cert=%p, len=%d)\n", __func__, cert_data, (int)cert_data_length);
 	LLSEC_PROFILE_START();
 	LLSEC_pub_key *pub_key = (LLSEC_pub_key *)mbedtls_calloc(1, sizeof(LLSEC_pub_key));
-	mbedtls_x509_crt *x509 = NULL;
 	void *native_id = NULL;
 
 	if (NULL == pub_key) {
@@ -190,8 +195,8 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 	}
 
 	if (LLSEC_SUCCESS == return_code) {
-		x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
-		if (NULL == x509) {
+		pub_key->x509 = get_x509_certificate(cert_data, cert_data_length, NULL);
+		if (NULL == pub_key->x509) {
 			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Bad x509 certificate");
 			LLSEC_ASSERT(sni_rc == SNI_OK);
 			return_code = LLSEC_ERROR;
@@ -200,12 +205,14 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 
 	if (LLSEC_SUCCESS == return_code) {
 		//Note:key TYPE: mbedtls_rsa_context or mbedtls_ecdsa_context
-		if (MBEDTLS_PK_RSA == mbedtls_pk_get_type(&x509->pk)) {
+		if (MBEDTLS_PK_RSA == mbedtls_pk_get_type(&pub_key->x509->pk)) {
 			pub_key->type = TYPE_RSA;
-			pub_key->key = (char *)mbedtls_pk_rsa(x509->pk);
+			/* This is just a quick access pointer, the data is allocated in pub_key->x509 */
+			pub_key->key = (char *)mbedtls_pk_rsa(pub_key->x509->pk);
 		} else {
 			pub_key->type = TYPE_ECDSA;
-			pub_key->key = (char *)mbedtls_pk_ec(x509->pk);
+			/* This is just a quick access pointer, the data is allocated in pub_key->x509 */
+			pub_key->key = (char *)mbedtls_pk_ec(pub_key->x509->pk);
 		}
 
 		if (NULL == pub_key->key) {
@@ -220,11 +227,6 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 		if (SNI_OK != SNI_registerResource(native_id, (SNI_closeFunction)LLSEC_X509_CERT_mbedtls_close_key, NULL)) {
 			int32_t sni_rc = SNI_throwNativeException(LLSEC_ERROR, "Can't register SNI native resource");
 			LLSEC_ASSERT(sni_rc == SNI_OK);
-			if (TYPE_RSA == pub_key->type) {
-				mbedtls_rsa_free((mbedtls_rsa_context *)pub_key->key);
-			} else {
-				mbedtls_ecdsa_free((mbedtls_ecdsa_context *)pub_key->key);
-			}
 			return_code = LLSEC_ERROR;
 		}
 	}
@@ -233,11 +235,11 @@ int32_t LLSEC_X509_CERT_IMPL_get_key(int8_t *cert_data, int32_t cert_data_length
 		// cppcheck-suppress misra-c2012-11.6 // Abstract data type for SNI usage
 		return_code = (uint32_t)native_id;
 	} else {
-		if (NULL != x509) {
-			mbedtls_x509_crt_free(x509);
-			mbedtls_free(x509);
-		}
 		if (NULL != pub_key) {
+			if (NULL != pub_key->x509) {
+				mbedtls_x509_crt_free(pub_key->x509);
+				mbedtls_free(pub_key->x509);
+			}
 			mbedtls_free(pub_key);
 		}
 	}
